@@ -24,6 +24,8 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Map;
 
@@ -117,7 +119,7 @@ public class GoogleMapActivity extends AppCompatActivity {
 
     private OnMapReadyCallback mapReadyCallback = new OnMapReadyCallback() {
         @Override
-        public void onMapReady(GoogleMap googleMap) {
+        public void onMapReady(final GoogleMap googleMap) {
             if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission
                     .ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.
@@ -132,7 +134,46 @@ public class GoogleMapActivity extends AppCompatActivity {
             // 나침반
             googleMap.getUiSettings().setCompassEnabled(true);
 
+            // 맵을 클릭했을 때 이벤트를 등록
+            googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    MarkerOptions markerOptions = new MarkerOptions();
+                    markerOptions.position(latLng);
+                    markerOptions.title("클릭한 장소").snippet("위도:"+latLng.latitude +
+                            " 경도:"+latLng.longitude);
+                    googleMap.addMarker(markerOptions).showInfoWindow();
+                }
+            });
+            // snippet 클릭 시 마커 삭제
+            googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                @Override
+                public void onInfoWindowClick(Marker marker) {
+                    marker.remove();
+                }
+            });
+
             if(mCurPosLatLng != null) {
+                // 현재 위치에 깃발 표시
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(mCurPosLatLng);
+
+                if(mBtnClickIndex == 1) {
+                    // 세종대왕
+                    markerOptions.title("광화문");
+                    markerOptions.snippet("세종대왕 동상");
+                } else if(mBtnClickIndex ==2 ) {
+                    // 해운대
+                    markerOptions.title("해운대");
+                    markerOptions.snippet("해운대 해수욕장 백사장");
+                } else if(mBtnClickIndex == 3) {
+                    // 서울여대
+                    markerOptions.title("서울여대");
+                    markerOptions.snippet("서울여대 만주벌판");
+                }
+
+                googleMap.addMarker(markerOptions);
+
                 // 구글맵을 위도, 경도 위치로 이동시킨다.
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(mCurPosLatLng));
             }
